@@ -30,7 +30,12 @@ class SAMIObservation(object):
 
             self.ndf_class = fits_data["STRUCT.MORE.NDF_CLASS"].data[0][0]
 
-            self.plate_id = fits_data[0].header["PLATEID"]
+            try:
+                self.plate_id = fits_data[0].header["PLATEID"]
+            except KeyError:
+                self.plate_id = None
+
+            self.spectrograph_arm = fits_data[0].header["SPECTID"]
 
     @property
     def base_filename(self):
@@ -119,7 +124,15 @@ class SAMIReductionManager(object):
 
             observation = SAMIObservation(os.path.basename(observation))
 
-        reduction_group = self.reduction_groups[observation.plate_id]
+        if observation.ndf_class not in ("MFFFF", "MFARC", "MFOBJECT"):
+            log.error("Don't know how to handle observation of class %s, skipped.", observation.ndf_class)
+            return
+
+        grouping_key = (observation.plate_id, observation.spectrograph_arm)
+        if grouping_key not in self.reduction_groups:
+            self.reduction_groups[grouping_key] = SAMIReductionGroup(observation.plate_id, "sami1000R.idx")
+
+        reduction_group = self.reduction_groups[grouping_key]
 
         # Classify observation based on NDF CLASS
         if observation.ndf_class == "MFFFF":

@@ -4,8 +4,12 @@ from glob import glob
 
 import os
 import tempfile
+import shutil
+
+import tdfdr
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "../sami_example_data/150422/ccd_2/")
+ALL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../sami_example_data/")
 
 from data_reducer import *
 
@@ -29,14 +33,13 @@ def temporary_working_directory_with_data():
     os.chdir(old_wd)
     # shutil.rmtree(dir)
 
+
+
 def test_pytest_not_capturing_fds(pytestconfig):
     # Note: pytest must be run in sys capture mode, instead of file descriptor capture mode
     # otherwise calls to "aaorun" seem to fail. This next test ensures that is the case.
     print("If this test fails, then you must run pytest with the option '--capture=sys'.")
     assert pytestconfig.getoption("capture") == "sys"
-
-
-
 
 def test_ndf_class_object():
 
@@ -62,7 +65,7 @@ def test_new_observation_add_and_classify(temporary_working_directory_with_data)
     assert len(mngr.all_observations()) == 4
 
 
-    assert "Y14SAR3_P005_12T056_15T080" in mngr.reduction_groups
+    assert ("Y14SAR3_P005_12T056_15T080", "R") in mngr.reduction_groups
 
 
 def test_reduce_all(temporary_working_directory_with_data):
@@ -76,4 +79,30 @@ def test_reduce_all(temporary_working_directory_with_data):
 
     mngr.reduce_all()
 
+def test_data_from_multiple_groups(temporary_working_directory):
+
+    mngr = SAMIReductionManager()
+
+    all_files = glob(ALL_DATA_DIR + "/*/ccd_?/*.fits")
+    for f in all_files:
+        mngr.import_new_observation(f)
+
+    assert len(mngr.science_observations) == 4
+
+    print(list(mngr.reduction_groups.keys()))
+
+    assert len(mngr.reduction_groups) == 2
+
+def test_reduce_multiple_groups(temporary_working_directory):
+
+    mngr = SAMIReductionManager()
+
+    all_files = glob(ALL_DATA_DIR + "/*/ccd_?/*.fits")
+    for f in all_files:
+        mngr.import_new_observation(f)
+
+    mngr.reduce_all()
+
     assert False
+
+
