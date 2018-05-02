@@ -14,13 +14,12 @@ log.setLevel(logging.DEBUG)
 # Check that 2dfdr is available.
 try:
     subprocess.run(["aaorun", "help"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    tdfdr_is_available = False
+    tdfdr_is_available = True
 except subprocess.CalledProcessError:
     print('Cannot find the 2dfdr executable `aaorun`\n'
           + 'Please ensure that 2dfdr is correctly installed.')
     tdfdr_is_available = False
 else:
-    tdfdr_is_available = True
     try:
         assert len(os.environ["DISPLAY"]) > 0
     except (AssertionError, TypeError):
