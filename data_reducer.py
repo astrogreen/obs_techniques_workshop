@@ -19,6 +19,8 @@ class SAMIObservation(object):
 
     def __init__(self, raw_filename):
 
+        assert os.path.exists(raw_filename)
+
         self.is_reduced = False
         self.raw_filename = raw_filename
         self.tlm_filename = None
@@ -112,8 +114,10 @@ class SAMIReductionManager(object):
     def import_new_observation(self, observation):
         # type: (SAMIObservation) -> None
 
-        if observation.plate_id not in self.reduction_groups:
-            self.reduction_groups[observation.plate_id] = SAMIReductionGroup(observation.plate_id, "sami1000R.idx")
+        if isinstance(observation, str):
+            shutil.copy(observation, ".")
+
+            observation = SAMIObservation(os.path.basename(observation))
 
         reduction_group = self.reduction_groups[observation.plate_id]
 
