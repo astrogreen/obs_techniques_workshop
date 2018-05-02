@@ -6,12 +6,25 @@ Workshop website: [https://www.aao.gov.au/conference/OTW2018]()
 
 
 
-## Python Overview
+## Pythonyp Overview
 
 - Python, Numpy, Scipy and Astropy
 - Python 2 vs Python 3: the [clock](https://pythonclock.org/) is ticking! If you're new to Python, you should use Python 3 and not look back!
 
 
+
+## Advertisement for previous talk at OTW2016
+
+For those interested, I gave a talk at the OTW2016 on using Python to access data in various online repositories. Specifically, it covers:
+
+- How to take the data from a table in a published paper and plot it in Python *without copying the data from the PDF, typing, or even having to handle the data at all*.
+- How to access data from the Gemini archive from within Python.
+
+The talk is an exercise in just how many tools there are for accessing data relevant for astronomy and how easy they are to use.
+
+[Notes from the talk](https://github.com/astrogreen/obs_techniques_workshop/blob/master/otw2016/Notes.md)
+
+[Video of the talk](https://youtu.be/4t7XaY-FHgs)
 
 ## Interlude in Software Engineering and Computer Science
 
@@ -105,6 +118,12 @@ Integrated development environments (IDEs) are very helpful for writing code. Cu
 
 Version control is really a good idea. And I don't mean just appending `v1`, `v2`, `v3`… to the filenames, though that is still better than nothing. `git` is very popular, but unfortunately suffers from a somewhat poorly designed user interface (command names are rarely intuitively named, etc.). Mercurial (`hg`) is typically more intuitive, but is less popular. As much as I don't like it, I would probably recommend `git` today, but the choice is yours. For either tool, there are great GUI tools ([SourceTree](https://www.sourcetreeapp.com/) is a good example), which can greatly ease the learning curve.
 
+### Description of the problem
+
+We would like to automate the execution of the 2dfdr data reduction system. We've already gotten some help from someone else on how 2dfdr can be run from the command line, and we've worked through a few by hand to make sure we have a picture of how this works before starting.
+
+The description of the process is here: [Data Reduction Process.md](https://github.com/astrogreen/obs_techniques_workshop/blob/master/Data%20Reduction%20Process.md)
+
 ### The Source
 
 The code for this manager is included in this repository. The current final version is in the `master` branch, which can easily be downloaded from the green button at the top right of this page [https://github.com/astrogreen/obs_techniques_workshop](). If you would like to see the code as I developed in stages during the talk, you can find the individual versions in the repository as tags:
@@ -137,6 +156,8 @@ mngr.reduce_all()
 If you have 2dfdr installed and `aaorun` is available on the command line, then this will actually reduce your data. If you don't then it will just print out the commands that would be used.
 
 
+
+# Questions
 
 
 
