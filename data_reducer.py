@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
+import shutil
 
 from typing import *
 
@@ -18,6 +19,10 @@ class SAMIObservation(object):
 
     def __init__(self, raw_filename):
 
+        assert os.path.exists(raw_filename)
+
+        assert os.path.exists(raw_filename)
+
         self.is_reduced = False
 
         self.raw_filename = raw_filename
@@ -26,11 +31,15 @@ class SAMIObservation(object):
         self.provenance_data = {}
 
         with fits.open(self.raw_filename) as fits_data:
-            log.debug(fits_data.info())
 
             self.ndf_class = fits_data["STRUCT.MORE.NDF_CLASS"].data[0][0]
 
-            self.plate_id = fits_data[0].header["PLATEID"]
+            try:
+                self.plate_id = fits_data[0].header["PLATEID"]
+            except KeyError:
+                self.plate_id = None
+
+            self.spectrograph_arm = fits_data[0].header["SPECTID"]
 
     @property
     def base_filename(self):
@@ -79,14 +88,14 @@ class SAMIReductionGroup(object):
 
     def reduce_objects(self):
 
-        for science_obseration in self.science_observation_list:
+        for science_observation in self.science_observation_list:
 
-            aaorun("reduce_object", science_obseration.raw_filename, self.idx_file,
+            aaorun("reduce_object", science_observation.raw_filename, self.idx_file,
                    arc_file=self.arc_observation.reduced_filename,
                    fiber_flat_file=self.fiber_flat_observation.reduced_filename,
                    tlm_file=self.tlm_observation.tlm_filename)
 
-            science_obseration.is_reduced = True
+            science_observation.is_reduced = True
 
     def reduce(self):
         self.make_tramline_map()
@@ -96,7 +105,7 @@ class SAMIReductionGroup(object):
 
 class SAMIReductionManager(object):
 
-    def __init__(self, working_directory):
+    def __init__(self):
 
         self.tramline_observations = []
         self.arc_observations = []
@@ -116,10 +125,20 @@ class SAMIReductionManager(object):
     def import_new_observation(self, observation):
         # type: (SAMIObservation) -> None
 
-        if observation.plate_id not in self.reduction_groups:
-            self.reduction_groups[observation.plate_id] = SAMIReductionGroup(observation.plate_id, "sami1000R.idx")
+        if isinstance(observation, str):
+            shutil.copy(observation, ".")
 
-        reduction_group = self.reduction_groups[observation.plate_id]
+            observation = SAMIObservation(os.path.basename(observation))
+
+        if observation.ndf_class not in ("MFFFF", "MFARC", "MFOBJECT"):
+            log.error("Don't know how to handle observation of class %s, skipped.", observation.ndf_class)
+            return
+
+        grouping_key = (observation.plate_id, observation.spectrograph_arm)
+        if grouping_key not in self.reduction_groups:
+            self.reduction_groups[grouping_key] = SAMIReductionGroup(observation.plate_id, "sami1000R.idx")
+
+        reduction_group = self.reduction_groups[grouping_key]
 
         # Classify observation based on NDF CLASS
         if observation.ndf_class == "MFFFF":
@@ -144,6 +163,7 @@ class SAMIReductionManager(object):
 
             if observation not in reduction_group.science_observation_list:
                 reduction_group.science_observation_list.append(observation)
+
 
     def reduce_all(self):
         for reduction_group in self.reduction_groups.values():

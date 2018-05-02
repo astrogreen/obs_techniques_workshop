@@ -93,3 +93,4 @@ def aaorun(operation, files, idx_file, arc_file=None, tlm_file=None, fiber_flat_
     else:
         print(" ".join(command))
         return " ".join(command)
+
