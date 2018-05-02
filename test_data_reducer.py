@@ -63,3 +63,17 @@ def test_new_observation_add_and_classify(temporary_working_directory_with_data)
 
 
     assert "Y14SAR3_P005_12T056_15T080" in mngr.reduction_groups
+
+
+def test_reduce_all(temporary_working_directory_with_data):
+
+    mngr = SAMIReductionManager()
+
+    for f in glob("*.fits"):
+        obs = SAMIObservation(f)
+
+        mngr.import_new_observation(obs)
+
+    mngr.reduce_all()
+
+    assert False

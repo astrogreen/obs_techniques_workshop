@@ -21,6 +21,7 @@ class SAMIObservation(object):
 
         self.is_reduced = False
         self.raw_filename = raw_filename
+        self.tlm_filename = None
         self.provenance_data = {}
 
         with fits.open(self.raw_filename) as fits_data:
@@ -28,6 +29,15 @@ class SAMIObservation(object):
             self.ndf_class = fits_data["STRUCT.MORE.NDF_CLASS"].data[0][0]
 
             self.plate_id = fits_data[0].header["PLATEID"]
+
+    @property
+    def base_filename(self):
+        filename, extension = os.path.splitext(os.path.basename(self.raw_filename))
+        return filename
+
+    @property
+    def reduced_filename(self):
+        return self.base_filename + "red.fits"
 
 
 class SAMIReductionGroup(object):
@@ -42,17 +52,43 @@ class SAMIReductionGroup(object):
         self.plate_id = plate_id  # type: str
 
     def make_tramline_map(self):
-        pass
+
+        aaorun("make_tlm", self.tlm_observation.raw_filename, self.idx_file)
+
+        self.tlm_observation.tlm_filename = self.tlm_observation.base_filename + "tlm.fits"
 
     def reduce_arc(self):
-        pass
+
+        aaorun("reduce_arc", self.arc_observation.raw_filename, self.idx_file,
+               tlm_file=self.tlm_observation.tlm_filename)
+
+        self.arc_observation.is_reduced = True
+
 
     def reduce_fiber_flat(self):
-        pass
+
+        aaorun("reduce_fflat", self.fiber_flat_observation.raw_filename, self.idx_file,
+               tlm_file=self.tlm_observation.tlm_filename,
+               arc_file=self.arc_observation.reduced_filename)
+
+        self.fiber_flat_observation.is_reduced = True
 
     def reduce_objects(self):
-        pass
 
+        for science_observation in self.science_observation_list:
+
+            aaorun("reduce_object", science_observation.raw_filename, self.idx_file,
+                   arc_file=self.arc_observation.reduced_filename,
+                   fiber_flat_file=self.fiber_flat_observation.reduced_filename,
+                   tlm_file=self.tlm_observation.tlm_filename)
+
+            science_observation.is_reduced = True
+
+    def reduce(self):
+        self.make_tramline_map()
+        self.reduce_arc()
+        self.reduce_fiber_flat()
+        self.reduce_objects()
 
 class SAMIReductionManager(object):
 
@@ -107,4 +143,6 @@ class SAMIReductionManager(object):
 
 
     def reduce_all(self):
-        pass
+        for reduction_group in self.reduction_groups.values():
+            reduction_group.reduce()
+

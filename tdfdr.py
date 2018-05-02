@@ -20,7 +20,7 @@ except subprocess.CalledProcessError:
           + 'Please ensure that 2dfdr is correctly installed.')
     tdfdr_is_available = False
 else:
-    tdfdr_is_available = True
+    # tdfdr_is_available = True
     try:
         assert len(os.environ["DISPLAY"]) > 0
     except (AssertionError, TypeError):
