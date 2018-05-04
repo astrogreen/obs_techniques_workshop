@@ -6,7 +6,7 @@ Workshop website: [https://www.aao.gov.au/conference/OTW2018]()
 
 
 
-## Pythonyp Overview
+## Python Overview
 
 - Python, Numpy, Scipy and Astropy
 - Python 2 vs Python 3: the [clock](https://pythonclock.org/) is ticking! If you're new to Python, you should use Python 3 and not look back!
